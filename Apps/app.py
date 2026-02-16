@@ -23,6 +23,14 @@ USER_CSV = os.path.join(CSV_DIR, "usuarios.csv")
 CADASTRO_CSV = os.path.join(CSV_DIR, "cadastro.csv")
 ENCARGOS_CSV = os.path.join(CSV_DIR, "encargos.csv")
 
+def _normalizar_cpf(cpf):
+    return "".join(ch for ch in str(cpf or "") if ch.isdigit())
+
+
+def _normalizar_email(email):
+    return (email or "").strip().lower()
+
+
 def validar_login(usuario, senha):
     with open(USER_CSV, newline="", encoding="utf-8") as file:
         leitor = csv.DictReader(file)
@@ -35,11 +43,16 @@ def validar_login(usuario, senha):
 def cadastro_existente(cpf, email):
     if not os.path.exists(CADASTRO_CSV):
         return False
-    
+
+    cpf_norm = _normalizar_cpf(cpf)
+    email_norm = _normalizar_email(email)
+
     with open(CADASTRO_CSV, newline="", encoding="utf-8") as file:
         leitor = csv.DictReader(file)
         for linha in leitor:
-            if linha["cpf"] == cpf or linha["email"] == email:
+            cpf_linha = _normalizar_cpf(linha.get("cpf"))
+            email_linha = _normalizar_email(linha.get("email"))
+            if (cpf_norm and cpf_linha == cpf_norm) or (email_norm and email_linha == email_norm):
                 return True
             
     return False
@@ -226,10 +239,16 @@ def _gerar_codigo_verificacao():
 def _buscar_cadastro_por_cpf_ou_email(cpf, email):
     if not os.path.exists(CADASTRO_CSV):
         return None
+
+    cpf_norm = _normalizar_cpf(cpf)
+    email_norm = _normalizar_email(email)
+
     with open(CADASTRO_CSV, newline="", encoding="utf-8") as file:
         leitor = csv.DictReader(file)
         for linha in leitor:
-            if (cpf and linha.get("cpf") == cpf) or (email and linha.get("email") == email):
+            cpf_linha = _normalizar_cpf(linha.get("cpf"))
+            email_linha = _normalizar_email(linha.get("email"))
+            if (cpf_norm and cpf_linha == cpf_norm) or (email_norm and email_linha == email_norm):
                 return linha
     return None
 
@@ -237,6 +256,9 @@ def _buscar_cadastro_por_cpf_ou_email(cpf, email):
 def _atualizar_cadastro_por_cpf_ou_email(cpf, email, updates):
     if not os.path.exists(CADASTRO_CSV):
         return False
+
+    cpf_norm = _normalizar_cpf(cpf)
+    email_norm = _normalizar_email(email)
 
     with open(CADASTRO_CSV, newline="", encoding="utf-8") as file:
         leitor = csv.DictReader(file)
@@ -252,7 +274,9 @@ def _atualizar_cadastro_por_cpf_ou_email(cpf, email, updates):
 
     updated = False
     for row in rows:
-        if (cpf and row.get("cpf") == cpf) or (email and row.get("email") == email):
+        cpf_row = _normalizar_cpf(row.get("cpf"))
+        email_row = _normalizar_email(row.get("email"))
+        if (cpf_norm and cpf_row == cpf_norm) or (email_norm and email_row == email_norm):
             for key, value in updates.items():
                 row[key] = value
             updated = True
@@ -342,8 +366,8 @@ def login():
 @app.route("/cadastro", methods=["GET", "POST"])
 def cadastro():
     if request.method == "POST":
-        cpf = request.form["cpf"]
-        email = request.form["email"]
+        cpf = _normalizar_cpf(request.form.get("cpf"))
+        email = _normalizar_email(request.form.get("email"))
 
         if cadastro_existente(cpf, email):
             return render_template(
@@ -373,19 +397,6 @@ def cadastro():
             "codigo_expira_em": str(expira_em),
             "email_verificado": "nao"
         }
-
-        criar_arquivo = not os.path.exists(CADASTRO_CSV)
-        fieldnames = list(dados.keys())
-        if not criar_arquivo:
-            fieldnames = _garantir_campos_cadastro(fieldnames) or fieldnames
-
-        with open(CADASTRO_CSV, "a", newline="", encoding="utf-8") as f:
-            writer = csv.DictWriter(f, fieldnames=fieldnames)
-
-            if criar_arquivo:
-                writer.writeheader()
-
-            writer.writerow(dados)
  
         try:
             primeiro_nome = _primeiro_nome(dados.get("nome"))
@@ -418,6 +429,19 @@ def cadastro():
                 "cadastro.html",
                 erro="Falha ao enviar o código de confirmação. Tente novamente."
             )
+
+        criar_arquivo = not os.path.exists(CADASTRO_CSV)
+        fieldnames = list(dados.keys())
+        if not criar_arquivo:
+            fieldnames = _garantir_campos_cadastro(fieldnames) or fieldnames
+
+        with open(CADASTRO_CSV, "a", newline="", encoding="utf-8") as f:
+            writer = csv.DictWriter(f, fieldnames=fieldnames)
+
+            if criar_arquivo:
+                writer.writeheader()
+
+            writer.writerow(dados)
 
         return redirect(url_for(
             "confirmar",
