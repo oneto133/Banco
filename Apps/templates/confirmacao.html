@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Confirmar Cadastro</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/confirmacao.css') }}">
+</head>
+<body>
+    <div class="confirmacao-box">
+        <h2>Confirme seu cadastro</h2>
+
+        {% if erro %}
+            <div class="msg erro">{{ erro }}</div>
+        {% endif %}
+
+        {% if sucesso %}
+            <div class="msg sucesso">{{ sucesso }}</div>
+        {% endif %}
+
+        <form method="POST" action="{{ url_for('confirmar') }}">
+            <input type="text" name="cpf" placeholder="CPF" value="{{ cpf or '' }}" readonly required>
+            <input type="email" name="email" placeholder="E-mail" value="{{ email or '' }}" readonly required>
+            <input type="text" name="codigo" placeholder="Código de confirmação" required>
+            <button type="submit">Confirmar código</button>
+        </form>
+
+        <form method="POST" action="{{ url_for('confirmar_reenviar') }}">
+            <input type="hidden" name="cpf" value="{{ cpf or '' }}">
+            <input type="hidden" name="email" value="{{ email or '' }}">
+            <button type="submit" class="secondary">Reenviar código</button>
+        </form>
+    </div>
+</body>
+</html>

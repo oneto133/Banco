@@ -1,0 +1,206 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Empréstimo</title>
+    <link rel="stylesheet" href="static/css/emprestimo.css">
+</head>
+<body>
+    <header>
+        <a class="back-link" href="/dashboard">Voltar</a>
+        <div class="header-actions">
+            <button class="profile-button" id="profileButton" aria-label="Abrir perfil">
+                <span class="profile-icon">👤</span>
+                <span>Perfil</span>
+            </button>
+            <a class="logout-button" href="/logout">Sair</a>
+        </div>
+    </header>
+
+    <main>
+        <section class="loan-shell">
+            <div class="loan-shell-header">
+                <h2>Empréstimo</h2>
+                <p>Veja limites e simule o parcelamento antes de solicitar.</p>
+            </div>
+
+            <div class="loan-cards">
+                <article class="loan-info-card">
+                    <p class="subtitle">Saldo disponível para empréstimo</p>
+                    <div class="loan-amount">
+                        {{ saldo_disponivel if saldo_disponivel else "R$ 0,00" }}
+                    </div>
+                    <p class="hint">Cálculo: saldo aplicado + {{ max_valor_perc_fmt }}%</p>
+                </article>
+
+                <article class="loan-info-card loan-info-card--muted">
+                    <p class="subtitle">Saldo devedor</p>
+                    <div class="loan-amount">R$ 0,00</div>
+                    <p class="hint">Sem dados no momento</p>
+                </article>
+            </div>
+
+            <button class="loan-action" id="loanToggle" type="button">Simular</button>
+
+            <div
+                class="loan-panel is-hidden"
+                id="loanPanel"
+                data-limit="{{ saldo_disponivel_num }}"
+                data-juros="{{ encargos.get('juros_mensal', '4.08') }}"
+                data-max-data="{{ encargos.get('max_data', '2026-11-10') }}"
+                data-max-parcelas="{{ encargos.get('max_parcelas', '24') }}"
+            >
+                <div class="loan-panel-header">
+                    <h3>Simulação</h3>
+                    <span class="loan-limit">Limite máximo: {{ saldo_disponivel if saldo_disponivel else "R$ 0,00" }}</span>
+                </div>
+
+                <div class="loan-form">
+                    <label>
+                        Valor desejado
+                        <input type="number" id="loanAmount" min="0" step="0.01" placeholder="Ex: 2500">
+                    </label>
+                    <label>
+                        Quantidade de parcelas
+                        <input type="number" id="loanInstallments" min="1" step="1">
+                    </label>
+                    <label>
+                        Chave PIX para depósito
+                        <input type="text" id="pixKey" placeholder="Ex: CPF, e-mail ou celular">
+                    </label>
+                    <label>
+                        CPF do recebedor
+                        <input type="text" id="pixCpf" placeholder="Ex: 000.000.000-00">
+                    </label>
+                    <label>
+                        Nome completo do recebedor
+                        <input type="text" id="pixName" placeholder="Ex: Maria Souza">
+                    </label>
+                </div>
+
+                <p class="loan-rule">
+                    Parcelamento máximo até <strong id="loanMaxDate">{{ max_data_br }}</strong>
+                    com juros de <strong id="loanMonthlyRate">{{ juros_mensal_fmt }}%</strong> ao mês.
+                </p>
+                <p class="loan-warning">
+                    Aviso: a contratação do empréstimo está sujeita à análise de crédito e à disponibilidade
+                    de valores no momento da contratação.
+                </p>
+
+                <div class="loan-terms">
+                    <label class="terms-check">
+                        <input type="checkbox" id="termsCheck">
+                        Concordo com os <a href="#" class="terms-link">termos e condições</a>
+                    </label>
+                </div>
+
+                <button class="loan-proceed" id="loanProceed" type="button" disabled>
+                    Prosseguir
+                </button>
+
+                <div class="loan-summary">
+                    <div class="summary-item">
+                        <span>Juros total</span>
+                        <strong id="loanInterest">0%</strong>
+                    </div>
+                    <div class="summary-item">
+                        <span>Total a pagar</span>
+                        <strong id="loanTotal">R$ 0,00</strong>
+                    </div>
+                    <div class="summary-item">
+                        <span>Valor por parcela</span>
+                        <strong id="loanPerInstallment">R$ 0,00</strong>
+                    </div>
+                    <div class="summary-item">
+                        <span>Data final</span>
+                        <strong id="loanEndDate">--/--/----</strong>
+                    </div>
+                </div>
+
+                <p class="loan-error" id="loanError" aria-live="polite"></p>
+            </div>
+
+            <div class="statement-overlay is-hidden" id="statementOverlay"></div>
+            <div class="loan-statement is-hidden" id="loanStatement" role="dialog" aria-modal="true" aria-labelledby="statementTitle">
+                <div class="statement-print-header">Gênio Financeiro</div>
+                <div class="statement-header">
+                    <h3 id="statementTitle">Extrato da simulação</h3>
+                    <div class="statement-actions">
+                        <button class="statement-btn" id="statementPrint" type="button" title="Imprimir">
+                            💾 Imprimir/PDF
+                        </button>
+                        <button class="statement-close" id="statementClose" type="button" aria-label="Fechar">×</button>
+                    </div>
+                </div>
+                <div class="statement-grid">
+                    <div>
+                        <span>Participante</span>
+                        <strong id="stParticipant">{{ nome if nome else "-" }}</strong>
+                    </div>
+                    <div>
+                        <span>CPF</span>
+                        <strong id="stCpf">{{ usuario if usuario else "-" }}</strong>
+                    </div>
+                    <div>
+                        <span>Valor solicitado</span>
+                        <strong id="stAmount">R$ 0,00</strong>
+                    </div>
+                    <div>
+                        <span>Número de parcelas</span>
+                        <strong id="stInstallments">0</strong>
+                    </div>
+                    <div>
+                        <span>Juro ao mês</span>
+                        <strong id="stRate">0%</strong>
+                    </div>
+                    <div>
+                        <span>Juros totais</span>
+                        <strong id="stInterest">0%</strong>
+                    </div>
+                    <div>
+                        <span>Valor final</span>
+                        <strong id="stTotal">R$ 0,00</strong>
+                    </div>
+                    <div>
+                        <span>Recebedor</span>
+                        <strong id="stReceiver">-</strong>
+                    </div>
+                    <div>
+                        <span>CPF do recebedor</span>
+                        <strong id="stReceiverCpf">-</strong>
+                    </div>
+                    <div>
+                        <span>Chave PIX</span>
+                        <strong id="stPixKey">-</strong>
+                    </div>
+                </div>
+                <p class="loan-warning">
+                    Aviso: a contratação do empréstimo está sujeita à análise de crédito e à disponibilidade
+                    de valores no momento da contratação.
+                </p>
+                <p class="loan-warning">
+                    Após aprovado, o valor será disponibilizado em até dois dias úteis.
+                </p>
+                <button class="loan-request" id="loanRequest" type="button">Solicitar</button>
+            </div>
+        </section>
+    </main>
+
+    <div class="overlay" id="overlay"></div>
+
+    <aside class="side-panel" id="sidePanel" aria-hidden="true">
+        <div class="panel-header">
+            <span class="panel-name">{{ nome if nome else "Perfil" }}</span>
+            <button class="close-button" id="closeButton" aria-label="Fechar perfil">&times;</button>
+        </div>
+        {% if usuario %}
+        <p>CPF: {{ usuario }}</p>
+        {% endif %}
+        <span class="help-label">Ajuda</span>
+    </aside>
+
+    <script src="static/js/dashboard.js"></script>
+    <script src="static/js/emprestimo.js"></script>
+</body>
+</html>

@@ -1,0 +1,577 @@
+﻿* {
+    box-sizing: border-box;
+}
+
+body {
+    position: relative;
+    margin: 0;
+    font-family: Arial, sans-serif;
+    min-height: 100vh;
+    color: #333;
+    background: linear-gradient(
+        270deg,
+        #b08cff,
+        #7b2cbf,
+        #5a189a,
+        #3c096c
+    );
+    background-size: 800% 800%;
+    animation: gradientAnimation 220s ease-in-out infinite;
+}
+
+@keyframes gradientAnimation {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+header {
+    position: absolute;
+    top: 20px;
+    right: 30px;
+    z-index: 2;
+}
+
+.header-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.profile-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border: 1px solid #ffffff;
+    border-radius: 20px;
+    background: transparent;
+    cursor: pointer;
+    color: #ffffff;
+    transition: 0.3s;
+}
+
+.logout-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border: 1px solid #ffffff;
+    border-radius: 20px;
+    color: #ffffff;
+    text-decoration: none;
+    transition: 0.3s;
+}
+
+.logout-button:hover {
+    background: #ffffff;
+    color: #000000;
+}
+
+.profile-button:hover {
+    background: #ffffff;
+    color: #000000;
+}
+
+.profile-icon {
+    width: 28px;
+    height: 28px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    color: inherit;
+    font-weight: 700;
+}
+
+main {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    gap: 24px;
+}
+
+.balance-area {
+    width: min(720px, 92vw);
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 20px;
+    animation: fadeIn 0.8s ease;
+}
+
+.balance-card {
+    width: min(520px, 92vw);
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 10px;
+    padding: 30px;
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.35);
+    animation: fadeIn 0.8s ease;
+}
+
+.loan-card {
+    align-self: flex-end;
+    border: none;
+    border-radius: 14px;
+    padding: 27px 20px;
+    background: #ffffff;
+    color: #2b0038;
+    cursor: pointer;
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.25);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    min-width: 160px;
+    text-decoration: none;
+}
+
+.loan-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 16px 28px rgba(0, 0, 0, 0.3);
+}
+
+.loan-card-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: #f0d463;
+    color: #3b2f00;
+    font-size: 22px;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.loan-card-text {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.chart-card {
+    width: min(760px, 92vw);
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 10px;
+    padding: 24px;
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.35);
+    animation: fadeIn 0.8s ease;
+}
+
+.chart-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 12px;
+}
+
+.chart-title {
+    margin: 0;
+    font-size: 18px;
+    color: #2b0038;
+}
+
+.chart-toggle {
+    display: inline-flex;
+    background: #f3f4f6;
+    border-radius: 999px;
+    padding: 4px;
+    gap: 6px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.quick-filters {
+    display: inline-flex;
+    gap: 6px;
+    padding-right: 6px;
+    border-right: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.quick-filter {
+    border: none;
+    background: transparent;
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-weight: 600;
+    cursor: pointer;
+    color: #4b5563;
+    transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.quick-filter.is-active {
+    background: #ffffff;
+    color: #111827;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+}
+
+.toggle-btn {
+    border: none;
+    background: transparent;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-weight: 600;
+    cursor: pointer;
+    color: #4b5563;
+}
+
+.toggle-btn.is-active {
+    background: #ffffff;
+    color: #111827;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+.filter-panel {
+    position: absolute;
+    right: 24px;
+    top: 72px;
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.2);
+    width: min(420px, 90vw);
+    z-index: 20;
+}
+
+.filter-panel.is-hidden {
+    display: none;
+}
+
+.filter-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.filter-title {
+    font-weight: 700;
+    color: #2b0038;
+}
+
+.filter-close {
+    border: none;
+    background: transparent;
+    font-size: 18px;
+    cursor: pointer;
+}
+
+.filter-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+}
+
+.filter-label {
+    font-weight: 700;
+}
+
+.filter-radio {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.filter-radio input[type="number"] {
+    width: 64px;
+    padding: 4px 6px;
+    border-radius: 6px;
+    border: 1px solid #d1d5db;
+}
+
+.filter-ok {
+    padding: 6px 14px;
+    border-radius: 999px;
+    border: 1px solid #c7c7c7;
+    background: #ffffff;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.filter-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 6px;
+}
+
+.filter-clear {
+    padding: 6px 14px;
+    border-radius: 999px;
+    border: 1px solid #e0e0e0;
+    background: #f6f6f6;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.filter-months {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.chart-collapse {
+    margin: 8px 0 12px 0;
+    background: transparent;
+    border: none;
+    color: #2b0038;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.chart-collapse .arrow-icon {
+    transition: transform 0.2s ease;
+}
+
+.chart-collapse.is-open .arrow-icon {
+    transform: rotate(180deg);
+}
+
+.chart-wrap.is-hidden {
+    display: none;
+}
+
+.chart-wrap {
+    width: 100%;
+    overflow-x: hidden;
+    position: relative;
+}
+
+.chart-wrap canvas {
+    width: 100%;
+    height: 220px;
+    display: block;
+}
+
+.chart-tooltip {
+    position: absolute;
+    left: 0;
+    top: 0;
+    padding: 8px 12px;
+    border-radius: 999px;
+    background: rgba(20, 26, 38, 0.92);
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    box-shadow: 0 12px 22px rgba(0, 0, 0, 0.18);
+    opacity: 0;
+    transform: translate(-50%, -120%);
+    transition: opacity 0.12s ease;
+    pointer-events: none;
+    white-space: nowrap;
+    z-index: 2;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.balance-grid {
+    display: flex;
+    gap: 24px;
+    flex-wrap: nowrap;
+}
+
+.balance-item {
+    flex: 1;
+    min-width: 0;
+}
+
+.balance-title {
+    margin: 0 0 8px 0;
+    font-size: 16px;
+    color: #333;
+}
+
+.balance-value {
+    margin: 0;
+    font-size: 32px;
+    font-weight: 700;
+}
+
+.balance-variation {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+}
+
+.variation-value {
+    display: inline-block;
+    white-space: nowrap;
+}
+
+.arrow {
+    font-size: 18px;
+}
+
+.arrow-up {
+    color: #1f9d55;
+}
+
+.arrow-down {
+    color: #e11d48;
+}
+
+.help-label {
+    display: inline-block;
+    margin-top: 16px;
+    padding: 2px 0;
+    border: none;
+    background: transparent;
+    font-weight: 600;
+    color: #3b005f;
+    transition: transform 0.2s ease, color 0.2s ease, text-shadow 0.2s ease;
+    cursor: default;
+}
+
+.help-label:hover {
+    background: transparent;
+    color: #0f62fe;
+    transform: translateY(-6px) scale(1.08);
+    text-shadow: 0 6px 14px rgba(15, 98, 254, 0.35);
+}
+
+.side-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    height: 100%;
+    width: 280px;
+    background: rgba(255, 255, 255, 0.98);
+    box-shadow: -6px 0 18px rgba(0, 0, 0, 0.12);
+    transform: translateX(100%);
+    transition: transform 0.25s ease;
+    padding: 20px;
+    z-index: 10;
+    color: #333;
+}
+
+.side-panel.open {
+    transform: translateX(0);
+}
+
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.close-button {
+    background: transparent;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.panel-name {
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.25);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+    z-index: 5;
+}
+
+.overlay.show {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+@media (max-width: 700px) {
+    header {
+        position: static;
+        padding: 14px 16px 0 16px;
+    }
+
+    main {
+        padding: 12px 16px 24px 16px;
+        min-height: auto;
+    }
+
+    .balance-card,
+    .chart-card {
+        width: 100%;
+        padding: 18px;
+    }
+
+    .balance-area {
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+
+    .loan-card {
+        align-self: flex-start;
+    }
+
+    .balance-grid {
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+
+    .balance-item {
+        min-width: 140px;
+    }
+
+    .balance-value {
+        font-size: 24px;
+    }
+
+    .chart-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .chart-toggle {
+        flex-wrap: wrap;
+    }
+
+    .quick-filters {
+        border-right: none;
+        padding-right: 0;
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .filter-panel {
+        position: static;
+        width: 100%;
+        margin: 8px 0 0 0;
+    }
+}

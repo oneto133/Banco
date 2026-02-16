@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
+</head>
+<body>
+    <div class="login-shell">
+        <a href="{{ url_for('cadastro') }}" class="btn-cadastro">Cadastrar-se</a>
+
+        {% if msg == 'sessao_expirada' %}
+        <div class="login-msg">
+            <div class="icon">⏳</div>
+            <p>Sess&#227;o expirada por inatividade. Fa&#231;a login novamente.</p>
+        </div>
+        {% endif %}
+
+        {% if msg == 'cadastro_pendente' %}
+        <div class="login-msg">
+            <div class="icon">⏳</div>
+            <p>
+                Cadastro conclu&#237;do com sucesso.<br>
+                Seu cadastro passar&#225; por aprova&#231;&#227;o.<br>
+                Aguarde retorno por e-mail ou telefone.
+            </p>
+        </div>
+        {% endif %}
+
+        <div class="login-box">
+            <h2>Login</h2>
+            {% if erro %}
+                <p class="erro">{{ erro }}</p>
+            {% endif %}
+
+            <form method="POST">
+                <input type="text" name="usuario" placeholder="Usu&#225;rio" required>
+                <input type="password" name="senha" placeholder="Senha" required>
+                <button type="submit">Entrar</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

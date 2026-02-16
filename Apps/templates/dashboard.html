@@ -1,0 +1,163 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="static/css/dashboard.css">
+</head>
+<body>
+    <header>
+        <div class="header-actions">
+        <button class="profile-button" id="profileButton" aria-label="Abrir perfil">
+            <span class="profile-icon">👤</span>
+            <span>Perfil</span>
+        </button>
+        <a class="logout-button" href="/logout">Sair</a>
+        </div>
+    </header>
+
+    <main>
+        <section class="balance-area">
+            <div class="balance-card">
+                <div class="balance-grid">
+                    <div class="balance-item">
+                        <p class="balance-title">Saldo aplicado</p>
+                        <p class="balance-value">
+                            {{ saldos.aplicado if saldos and saldos.aplicado else "R$ 0,00" }}
+                        </p>
+                    </div>
+
+                    <div class="balance-item">
+                        <p class="balance-title">Saldo atual</p>
+                        <p class="balance-value">
+                            {{ saldos.atual if saldos and saldos.atual else "R$ 0,00" }}
+                        </p>
+                    </div>
+
+                    <div class="balance-item">
+                        <p class="balance-title">Variação</p>
+                        <p class="balance-value balance-variation">
+                            {% if saldos and saldos.variacao %}
+                                <span class="variation-value">{{ saldos.variacao }}</span>
+                                {% if saldos.variacao_num > 0 %}
+                                <span class="arrow arrow-up">&#9650;</span>
+                                {% elif saldos.variacao_num < 0 %}
+                                <span class="arrow arrow-down">&#9660;</span>
+                                {% endif %}
+                            {% else %}
+                                R$ 0,00
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <a class="loan-card" href="/emprestimo" aria-label="Pegar emprestado">
+                <span class="loan-card-icon" aria-hidden="true">$</span>
+                <span class="loan-card-text">Pegar emprestado</span>
+            </a>
+        </section>
+        <section class="chart-card">
+            <div class="chart-header">
+                <h3 class="chart-title">Evolução Caixinha 2026</h3>
+                <div class="chart-toggle">
+                    <div class="quick-filters" role="group" aria-label="Filtros rápidos">
+                        <button class="quick-filter" data-range="1d" type="button">1 dia</button>
+                        <button class="quick-filter" data-range="1w" type="button">1 semana</button>
+                        <button class="quick-filter" data-range="1m" type="button">1 mês</button>
+                        <button class="quick-filter" data-range="1y" type="button">1 ano</button>
+                    </div>
+                    <button class="toggle-btn is-active" data-chart="line" type="button">Linha</button>
+                    <button class="toggle-btn" data-chart="bar" type="button">Barra</button>
+                    <button class="toggle-btn filter-btn" id="filterBtn" type="button">Filtrar</button>
+                </div>
+            </div>
+            <div class="filter-panel is-hidden" id="filterPanel">
+                <div class="filter-header">
+                    <span class="filter-title">Filtros</span>
+                    <button class="filter-close" id="filterClose" type="button">×</button>
+                </div>
+                <div class="filter-group">
+                    <span class="filter-label">Média móvel</span>
+                    <label class="filter-radio">
+                        <input type="checkbox" id="maToggle" checked>
+                        Ativar
+                    </label>
+                    <label class="filter-radio">
+                        Período
+                        <input type="number" id="maPeriod" min="2" max="60" value="2">
+                    </label>
+                </div>
+                <div class="filter-group">
+                    <span class="filter-label">Período</span>
+                    <label class="filter-radio">
+                        <input type="radio" name="periodo" value="todos" checked>
+                        Todo período
+                    </label>
+                    <label class="filter-radio">
+                        <input type="radio" name="periodo" value="mes">
+                        Meses
+                    </label>
+                    <label class="filter-radio">
+                        <input type="radio" name="periodo" value="semana">
+                        Semanas
+                    </label>
+                </div>
+                <div class="filter-group" id="monthsGroup">
+                    <span class="filter-label">Meses</span>
+                    <div class="filter-months" id="monthsOptions"></div>
+                </div>
+                <div class="filter-group" id="weeksGroup">
+                    <span class="filter-label">Semanas</span>
+                    <label class="filter-radio">
+                        <input type="radio" name="semana" value="1" checked>
+                        1ª semana
+                    </label>
+                    <label class="filter-radio">
+                        <input type="radio" name="semana" value="2">
+                        2ª semana
+                    </label>
+                    <label class="filter-radio">
+                        <input type="radio" name="semana" value="3">
+                        3ª semana
+                    </label>
+                    <label class="filter-radio">
+                        <input type="radio" name="semana" value="4">
+                        4ª semana
+                    </label>
+                </div>
+                <div class="filter-actions">
+                    <button class="filter-clear" id="filterClear" type="button">Limpar</button>
+                    <button class="filter-ok" id="filterOk" type="button">OK</button>
+                </div>
+            </div>
+            <button class="chart-collapse" id="chartCollapse" type="button">
+                Acompanhar evolução <span class="arrow-icon">▼</span>
+            </button>
+            <div class="chart-wrap is-hidden" id="chartWrap">
+                <canvas id="evolucaoChart" width="640" height="220"></canvas>
+                <div class="chart-tooltip" id="chartTooltip" aria-hidden="true"></div>
+            </div>
+        </section>
+    </main>
+
+    <script id="evolucaoData" type="application/json">
+        {{ evolucao|default([], true)|tojson }}
+    </script>
+
+    <div class="overlay" id="overlay"></div>
+
+    <aside class="side-panel" id="sidePanel" aria-hidden="true">
+        <div class="panel-header">
+            <span class="panel-name">{{ nome if nome else "Perfil" }}</span>
+            <button class="close-button" id="closeButton" aria-label="Fechar perfil">&times;</button>
+        </div>
+        {% if usuario %}
+        <p>CPF: {{ usuario }}</p>
+        {% endif %}
+        <span class="help-label">Ajuda</span>
+    </aside>
+
+    <script src="static/js/dashboard.js"></script>
+</body>
+</html>

@@ -1,0 +1,166 @@
+/* RESET BÁSICO */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+/* FUNDO (MANTÉM O PADRÃO DO LOGIN) */
+body {
+    position: relative;
+    font-family: Arial, sans-serif;
+    height: 100vh;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    background: linear-gradient(
+        270deg,
+        #120016,
+        #3b005f,
+        #000000,
+        #4b0082
+    );
+    background-size: 600% 600%;
+    animation: gradientAnimation 100s linear infinite;
+}
+
+/* ANIMAÇÃO DO FUNDO */
+@keyframes gradientAnimation {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* CAIXA DE CADASTRO */
+.cadastro-box {
+    width: 520px;
+    padding: 35px 40px;
+
+    background: rgba(255, 255, 255, 0.96);
+    border-radius: 14px;
+
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.45);
+
+    animation: fadeIn 0.8s ease;
+}
+
+/* ANIMAÇÃO DE ENTRADA */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* TÍTULO */
+.cadastro-box h2 {
+    text-align: center;
+    margin-bottom: 25px;
+    color: #2b0038;
+    font-size: 22px;
+}
+
+/* FORM EM GRID */
+.cadastro-box form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px 16px;
+}
+
+/* INPUTS */
+.cadastro-box input {
+    width: 100%;
+    padding: 10px 12px;
+
+    border: 1px solid #ccc;
+    border-radius: 6px;
+
+    font-size: 14px;
+}
+
+/* INPUTS READONLY */
+.cadastro-box input[readonly] {
+    background-color: #f2f2f2;
+    color: #555;
+}
+
+/* FOCO */
+.cadastro-box input:focus {
+    outline: none;
+    border-color: #6a0dad;
+    box-shadow: 0 0 6px rgba(106, 13, 173, 0.4);
+}
+
+/* CAMPOS QUE OCUPAM A LINHA TODA */
+.cadastro-box .full {
+    grid-column: span 2;
+}
+
+/* BOTÃO */
+.cadastro-box button {
+    grid-column: span 2;
+
+    margin-top: 18px;
+    padding: 12px;
+
+    background: linear-gradient(135deg, #6a0dad, #3b005f);
+    color: white;
+
+    border: none;
+    border-radius: 8px;
+
+    font-size: 16px;
+    font-weight: bold;
+
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.cadastro-box button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.35);
+}
+
+/* RESPONSIVO */
+@media (max-width: 600px) {
+    .cadastro-box {
+        width: 90%;
+        padding: 30px;
+    }
+
+    .cadastro-box form {
+        grid-template-columns: 1fr;
+    }
+
+    .cadastro-box .full,
+    .cadastro-box button {
+        grid-column: span 1;
+    }
+}
+
+/* MENSAGENS */
+.msg {
+    grid-column: span 2;
+    padding: 12px;
+    border-radius: 6px;
+    font-size: 14px;
+    text-align: center;
+}
+
+.msg.erro {
+    background-color: #ffe1e1;
+    color: #8b0000;
+    border: 1px solid #ffb3b3;
+}
+
+.msg.sucesso {
+    background-color: #e6f7ec;
+    color: #0f5132;
+    border: 1px solid #b7e4c7;
+}

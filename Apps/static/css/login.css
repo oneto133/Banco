@@ -1,0 +1,211 @@
+/* RESET BÁSICO */
+* {
+    box-sizing: border-box;
+}
+
+/* FUNDO ANIMADO */
+body {
+    position: relative;
+    font-family: Arial, sans-serif;
+    min-height: 100vh;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 24px 16px;
+    background: linear-gradient(
+        270deg,
+        #120016,
+        #3b005f,
+        #000000,
+        #4b0082
+    );
+    background-size: 800% 800%;
+    animation: gradientAnimation 220s ease-in-out infinite;
+}
+
+/* ANIMAÇÃO DO FUNDO */
+@keyframes gradientAnimation {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+/* CAIXA DE LOGIN */
+.login-shell {
+    width: 100%;
+    max-width: 380px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    align-items: center;
+}
+
+.login-box {
+    width: 100%;
+    padding: 26px;
+
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 10px;
+
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.35);
+
+    animation: fadeIn 0.8s ease;
+}
+
+/* ANIMAÇÃO DE ENTRADA */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* TÍTULO */
+.login-box h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #2b0038;
+    font-size: 28px;
+}
+
+/* LABELS */
+.login-box label {
+    font-weight: bold;
+    display: block;
+    margin-top: 12px;
+    color: #333;
+}
+
+/* INPUTS */
+.login-box input {
+    width: 100%;
+    padding: 9px;
+    margin-top: 5px;
+
+    border: 1px solid #ccc;
+    border-radius: 5px;
+
+    font-size: 14px;
+}
+
+.login-box input:focus {
+    outline: none;
+    border-color: #6a0dad;
+    box-shadow: 0 0 5px rgba(106, 13, 173, 0.4);
+}
+
+/* BOTÃO */
+.login-box button {
+    width: 100%;
+    padding: 11px;
+    margin-top: 22px;
+
+    background: linear-gradient(135deg, #6a0dad, #3b005f);
+    color: white;
+
+    border: none;
+    border-radius: 5px;
+
+    font-size: 16px;
+    font-weight: bold;
+
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.login-box button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
+}
+
+/* RESPONSIVO */
+@media (max-width: 600px) {
+    .login-box {
+        padding: 22px;
+    }
+
+    .login-box h2 {
+        font-size: 30px;
+    }
+
+    .login-box input {
+        font-size: 16px;
+        padding: 12px;
+    }
+
+    .login-box button {
+        padding: 12px;
+        font-size: 16px;
+    }
+
+    .btn-cadastro {
+        top: 12px;
+        right: 12px;
+    }
+}
+
+.btn-cadastro {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    color: white;
+    text-decoration: none;
+    border: 1px solid white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    transition: 0.3s;
+}
+
+.btn-cadastro:hover {
+    background: white;
+    color: black;
+}
+
+.cadastro-box {
+    width: 420px;
+    padding: 30px;
+
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 10px;
+
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.35);
+
+    animation: fadeIn 0.8s ease;
+}
+
+/* MENSAGEM DE CADASTRO PENDENTE */
+.login-msg {
+    width: 100%;
+    padding: 16px;
+
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 10px;
+
+    text-align: center;
+
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+
+    animation: fadeIn 0.8s ease;
+}
+
+.login-msg .icon {
+    font-size: 32px;
+    margin-bottom: 8px;
+}
+
+.login-msg p {
+    font-size: 14px;
+    color: #333;
+    line-height: 1.4;
+}
