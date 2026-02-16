@@ -4,10 +4,14 @@ from datetime import datetime
 from email.message import EmailMessage
 import csv
 import os
-import dados
 import smtplib
 import secrets
 import time
+
+try:
+    from . import dados
+except ImportError:
+    import dados
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "genio-secret-key")
