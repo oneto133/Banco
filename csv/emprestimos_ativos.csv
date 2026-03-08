@@ -1,0 +1,4 @@
+cpf,id_participante,id_emprestimo,valor_total_emprestimo,saldo_devedor,parcela,vencimento,valor_parcela,status_parcela
+07355444255,2,2,"R$ 270,41","R$ 270,41",1,01/04/2026,"R$ 135,20",em aberto
+07355444255,2,2,"R$ 270,41","R$ 270,41",2,02/05/2026,"R$ 135,20",em aberto
+07355444255,2,3,"R$ 208,16","R$ 208,16",1,12/04/2026,"R$ 208,16",em aberto

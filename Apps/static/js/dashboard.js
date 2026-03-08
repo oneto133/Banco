@@ -15,11 +15,14 @@ const closePanel = () => {
     sidePanel.setAttribute("aria-hidden", "true");
 };
 
+
 if (profileButton && closeButton && overlay) {
     profileButton.addEventListener("click", openPanel);
     closeButton.addEventListener("click", closePanel);
     overlay.addEventListener("click", closePanel);
 }
+
+
 
 const dataScript = document.getElementById("evolucaoData");
 let evolucaoData = [];
@@ -563,6 +566,7 @@ if (canvas) {
             const rect = canvas.getBoundingClientRect();
             const wrapRect = chartWrap.getBoundingClientRect();
             const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
             const canvasX = (event.clientX - rect.left) * scaleX;
 
             const { seriesValues, seriesLabels, minPlot, range, width, height, plotLeft, plotTop, mode } = chartState;
@@ -593,8 +597,21 @@ if (canvas) {
                 : plotLeft + (width * idx) / (seriesValues.length - 1);
             const pointY = plotTop + height - ((value - minPlot) / range) * height;
 
-            const left = Math.max(14, Math.min(wrapRect.width - 14, (rect.left - wrapRect.left) + (pointX / scaleX)));
-            const top = Math.max(12, (rect.top - wrapRect.top) + (pointY / (canvas.height / rect.height)));
+            const pointXCss = (rect.left - wrapRect.left) + (pointX / scaleX);
+            const pointYCss = (rect.top - wrapRect.top) + (pointY / scaleY);
+            const tooltipWidth = chartTooltip.offsetWidth || 0;
+            const tooltipHeight = chartTooltip.offsetHeight || 0;
+            const gap = 10;
+            const edgePadding = 8;
+
+            let left = pointXCss - (tooltipWidth / 2);
+            left = Math.max(edgePadding, Math.min(wrapRect.width - tooltipWidth - edgePadding, left));
+
+            let top = pointYCss - tooltipHeight - gap;
+            if (top < edgePadding) {
+                top = pointYCss + gap;
+            }
+            top = Math.max(edgePadding, Math.min(wrapRect.height - tooltipHeight - edgePadding, top));
 
             chartTooltip.style.left = `${left}px`;
             chartTooltip.style.top = `${top}px`;
@@ -667,3 +684,4 @@ const pingSession = async () => {
 ["click", "mousemove", "keydown", "scroll", "touchstart"].forEach(evt => {
     document.addEventListener(evt, pingSession, { passive: true });
 });
+

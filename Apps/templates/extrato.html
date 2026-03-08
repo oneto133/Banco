@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Extrato</title>
+    <link rel="stylesheet" href="static/css/extrato.css">
+</head>
+<body>
+    <main class="extrato-main">
+        <section class="extrato-card">
+            <div class="extrato-header">
+                <div>
+                    <h1 class="extrato-title">Extrato</h1>
+                    <p class="extrato-subtitle">{{ nome if nome else "Participante" }}</p>
+                </div>
+                <div class="extrato-actions no-print">
+                    <a class="secondary-btn" href="/dashboard">Voltar</a>
+                    <button class="primary-btn" type="button" onclick="window.print()">Imprimir</button>
+                </div>
+            </div>
+
+            <div class="extrato-table-wrap">
+                <table class="extrato-table">
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Transacao</th>
+                            <th>N transacao</th>
+                            <th>Valor</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if transacoes and transacoes|length > 0 %}
+                            {% for item in transacoes %}
+                            <tr>
+                                <td>{{ item.data }}</td>
+                                <td>{{ item.categoria if item.categoria else "Sem categoria" }}</td>
+                                <td>{{ item.transacao }}</td>
+                                <td class="{{ item.valor_classe if item.valor_classe else 'valor-neutro' }}">{{ item.valor }}</td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="4" class="empty-row">Nenhuma transacao encontrada para este participante.</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+</body>
+</html>

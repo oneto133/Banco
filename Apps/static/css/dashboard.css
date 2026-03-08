@@ -19,6 +19,10 @@ body {
     animation: gradientAnimation 220s ease-in-out infinite;
 }
 
+:root {
+    --dashboard-content-width: min(1120px, 94vw);
+}
+
 @keyframes gradientAnimation {
     0% {
         background-position: 0% 50%;
@@ -100,7 +104,7 @@ main {
 }
 
 .balance-area {
-    width: min(720px, 92vw);
+    width: var(--dashboard-content-width);
     display: flex;
     align-items: flex-start;
     justify-content: flex-start;
@@ -109,10 +113,12 @@ main {
 }
 
 .balance-card {
-    width: min(520px, 92vw);
+    flex: 1;
+    min-width: 0;
+    min-height: 130px;
     background: rgba(255, 255, 255, 0.95);
     border-radius: 10px;
-    padding: 30px;
+    padding: 20px;
     box-shadow: 0 15px 30px rgba(0, 0, 0, 0.35);
     animation: fadeIn 0.8s ease;
 }
@@ -133,6 +139,13 @@ main {
     gap: 10px;
     min-width: 160px;
     text-decoration: none;
+}
+
+.action-cards {
+    display: flex;
+    align-self: flex-end;
+    gap: 12px;
+    flex-shrink: 0;
 }
 
 .loan-card:hover {
@@ -161,13 +174,37 @@ main {
     letter-spacing: 0.04em;
 }
 
+.statement-card-icon {
+    background: #d7e9ff;
+    color: #0f2f5f;
+}
+
 .chart-card {
-    width: min(760px, 92vw);
+    width: var(--dashboard-content-width);
     background: rgba(255, 255, 255, 0.95);
     border-radius: 10px;
     padding: 24px;
     box-shadow: 0 15px 30px rgba(0, 0, 0, 0.35);
     animation: fadeIn 0.8s ease;
+}
+
+.overview-section {
+    width: var(--dashboard-content-width);
+    animation: fadeIn 0.8s ease;
+}
+
+.overview-heading {
+    margin: 0 0 10px 0;
+    color: #ffffff;
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.overview-card {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 10px;
+    padding: 24px;
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.35);
 }
 
 .chart-header {
@@ -374,7 +411,6 @@ main {
     letter-spacing: 0.01em;
     box-shadow: 0 12px 22px rgba(0, 0, 0, 0.18);
     opacity: 0;
-    transform: translate(-50%, -120%);
     transition: opacity 0.12s ease;
     pointer-events: none;
     white-space: nowrap;
@@ -439,24 +475,9 @@ main {
     color: #e11d48;
 }
 
-.help-label {
-    display: inline-block;
-    margin-top: 16px;
-    padding: 2px 0;
-    border: none;
-    background: transparent;
-    font-weight: 600;
-    color: #3b005f;
-    transition: transform 0.2s ease, color 0.2s ease, text-shadow 0.2s ease;
-    cursor: default;
-}
 
-.help-label:hover {
-    background: transparent;
-    color: #0f62fe;
-    transform: translateY(-6px) scale(1.08);
-    text-shadow: 0 6px 14px rgba(15, 98, 254, 0.35);
-}
+
+
 
 .side-panel {
     position: fixed;
@@ -511,6 +532,19 @@ main {
     pointer-events: auto;
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
 @media (max-width: 700px) {
     header {
         position: static;
@@ -523,9 +557,19 @@ main {
     }
 
     .balance-card,
-    .chart-card {
+    .chart-card,
+    .overview-card {
         width: 100%;
         padding: 18px;
+    }
+
+    .overview-section {
+        width: 100%;
+    }
+
+    .overview-heading {
+        font-size: 18px;
+        margin-bottom: 8px;
     }
 
     .balance-area {
@@ -535,8 +579,9 @@ main {
         gap: 12px;
     }
 
-    .loan-card {
+    .action-cards {
         align-self: flex-start;
+        gap: 10px;
     }
 
     .balance-grid {
@@ -574,4 +619,6 @@ main {
         width: 100%;
         margin: 8px 0 0 0;
     }
-}
+
+    
+    }

@@ -17,8 +17,11 @@ CSV_DIR = os.path.join(BASE_DIR, "csv")
 INFORMACOES_CSV = os.path.join(CSV_DIR, "informacoes.csv")
 EVOLUCAO_CSV = os.path.join(CSV_DIR, "evolucao_caixinha.csv")
 RELATORIO_CSV = os.path.join(CSV_DIR, "relatorio.csv")
+EXTRATO_CSV = os.path.join(CSV_DIR, "extrato.csv")
+EMPRESTIMOS_ATIVOS_CSV = os.path.join(CSV_DIR, "emprestimos_ativos.csv")
 SHEET_NAME = "participantes"
 SHEET_BASE = "Base"
+SHEET_EXTRATO = "Extrato"
 
 
 def _normalizar_texto(valor):
@@ -70,6 +73,54 @@ def _resolver_nome_aba_base(xl):
     return xl.sheet_names[0] if xl.sheet_names else None
 
 
+def _resolver_nome_aba_extrato(xl):
+    alvo = _normalizar_texto(SHEET_EXTRATO)
+    for nome in xl.sheet_names:
+        if _normalizar_texto(nome) == alvo:
+            return nome
+    for nome in xl.sheet_names:
+        if "extrat" in _normalizar_texto(nome):
+            return nome
+    return None
+
+
+def _resolver_nome_aba_por_termos(xl, termos):
+    if not xl or not getattr(xl, "sheet_names", None):
+        return None
+    termos_norm = [_normalizar_texto(t) for t in termos if t]
+    for termo in termos_norm:
+        for nome in xl.sheet_names:
+            if _normalizar_texto(nome) == termo:
+                return nome
+    for termo in termos_norm:
+        for nome in xl.sheet_names:
+            if _normalizar_texto(nome).startswith(termo):
+                return nome
+    for nome in xl.sheet_names:
+        nome_norm = _normalizar_texto(nome)
+        if any(termo in nome_norm for termo in termos_norm):
+            return nome
+    return None
+
+
+def _carregar_caixinha_excel():
+    origem = XLSX_TMP if os.path.exists(XLSX_TMP) else XLSX_PATH
+    if not os.path.exists(origem):
+        return None
+    try:
+        return pd.ExcelFile(origem, engine="openpyxl")
+    except Exception:
+        return None
+
+
+def _normalizar_id(valor):
+    texto = str(valor or "").strip()
+    if not texto:
+        return None
+    numeros = re.sub(r"\D", "", texto)
+    return numeros if numeros else texto.lower()
+
+
 def carregar_participantes_df():
     if not os.path.exists(XLSX_PATH):
         return None
@@ -83,6 +134,36 @@ def carregar_participantes_df():
     except Exception:
         return None
     finally:
+        try:
+            if os.path.exists(XLSX_TMP):
+                os.remove(XLSX_TMP)
+        except Exception:
+            pass
+
+
+def _carregar_extrato_df():
+    if not os.path.exists(XLSX_PATH):
+        return None
+
+    xl = None
+    try:
+        shutil.copy2(XLSX_PATH, XLSX_TMP)
+        xl = pd.ExcelFile(XLSX_TMP, engine="openpyxl")
+        aba = _resolver_nome_aba_extrato(xl)
+        if not aba:
+            return None
+        df = pd.read_excel(xl, sheet_name=aba, dtype=str)
+        if df is None or df.empty:
+            return None
+        return df
+    except Exception:
+        return None
+    finally:
+        try:
+            if xl is not None and hasattr(xl, "close"):
+                xl.close()
+        except Exception:
+            pass
         try:
             if os.path.exists(XLSX_TMP):
                 os.remove(XLSX_TMP)
@@ -305,6 +386,188 @@ def _parse_decimal(valor):
         return None
 
 
+def _buscar_emprestimos_ativos():
+    xl = _carregar_caixinha_excel()
+    if xl is None:
+        return []
+
+    try:
+        aba_parcelas = _resolver_nome_aba_por_termos(xl, ["parcelas", "parcela"])
+        aba_emprestimos = _resolver_nome_aba_por_termos(xl, ["emprestimos", "emprestimo"])
+        aba_participantes = _resolver_nome_aba_por_termos(xl, ["particip"])
+        if not aba_parcelas or not aba_emprestimos or not aba_participantes:
+            return []
+
+        parcelas = pd.read_excel(xl, sheet_name=aba_parcelas, dtype=str)
+        emprestimos = pd.read_excel(xl, sheet_name=aba_emprestimos, dtype=str)
+        participantes = pd.read_excel(xl, sheet_name=aba_participantes, dtype=str)
+        if parcelas is None or parcelas.empty:
+            return []
+        if emprestimos is None or emprestimos.empty:
+            return []
+        if participantes is None or participantes.empty:
+            return []
+
+        col_status_parc = _encontrar_coluna(parcelas.columns, ["status"])
+        col_id_emprest_parc = _encontrar_coluna(parcelas.columns, ["id_emprest", "id emprest"])
+        col_parcela = _encontrar_coluna(parcelas.columns, ["parcela"])
+        col_vencimento = _encontrar_coluna(parcelas.columns, ["venc"])
+        col_saldo_parcela = _encontrar_coluna(parcelas.columns, ["saldo"])
+        col_valor_parcela = _encontrar_coluna(parcelas.columns, ["valor"])
+
+        col_id_emprest = _encontrar_coluna(emprestimos.columns, ["id"])
+        col_id_part = _encontrar_coluna(emprestimos.columns, ["id_participante", "id participante"])
+        col_valor_final = _encontrar_coluna(emprestimos.columns, ["valor final", "valor_total", "valor total"])
+        col_valor = _encontrar_coluna(emprestimos.columns, ["valor"])
+
+        col_part_id = _encontrar_coluna(participantes.columns, ["id"])
+        col_part_cpf = _encontrar_coluna(participantes.columns, ["cpf"])
+
+        if (
+            not col_status_parc
+            or not col_id_emprest_parc
+            or not col_id_emprest
+            or not col_id_part
+            or not col_part_id
+            or not col_part_cpf
+        ):
+            return []
+
+        parcelas["_status_norm"] = parcelas[col_status_parc].fillna("").astype(str).str.strip().str.lower()
+        parcelas_abertas = parcelas[parcelas["_status_norm"] == "em aberto"].copy()
+        if parcelas_abertas.empty:
+            return []
+
+        parcelas_abertas["_id_emprest_norm"] = parcelas_abertas[col_id_emprest_parc].apply(_normalizar_id)
+        emprestimos["_id_emprest_norm"] = emprestimos[col_id_emprest].apply(_normalizar_id)
+        emprestimos["_id_part_norm"] = emprestimos[col_id_part].apply(_normalizar_id)
+        participantes["_id_part_norm"] = participantes[col_part_id].apply(_normalizar_id)
+        participantes["_cpf_norm"] = participantes[col_part_cpf].apply(_normalizar_cpf)
+
+        mapa_participante_cpf = participantes.set_index("_id_part_norm")["_cpf_norm"].to_dict()
+        mapa_emprestimos = emprestimos.set_index("_id_emprest_norm").to_dict(orient="index")
+
+        ativos = []
+        for id_emprest_norm, grupo in parcelas_abertas.groupby("_id_emprest_norm"):
+            if not id_emprest_norm:
+                continue
+            emprestimo = mapa_emprestimos.get(id_emprest_norm)
+            if not emprestimo:
+                continue
+
+            id_participante = emprestimo.get("_id_part_norm")
+            cpf = mapa_participante_cpf.get(id_participante)
+            if not cpf:
+                continue
+
+            saldo_devedor = Decimal("0")
+            detalhes = []
+            for _, linha in grupo.iterrows():
+                valor_parcela = _parse_decimal(linha.get(col_saldo_parcela)) if col_saldo_parcela else None
+                if valor_parcela is None and col_valor_parcela:
+                    valor_parcela = _parse_decimal(linha.get(col_valor_parcela))
+                if valor_parcela is None:
+                    valor_parcela = Decimal("0")
+                saldo_devedor += valor_parcela
+
+                vencimento_fmt = ""
+                dt = pd.to_datetime(linha.get(col_vencimento), errors="coerce") if col_vencimento else None
+                if dt is not None and not pd.isna(dt):
+                    vencimento_fmt = dt.strftime("%d/%m/%Y")
+                elif col_vencimento:
+                    vencimento_fmt = str(linha.get(col_vencimento) or "").strip()
+
+                detalhes.append(
+                    {
+                        "parcela": str(linha.get(col_parcela) or "").strip(),
+                        "vencimento": vencimento_fmt,
+                        "valor": _formatar_real(valor_parcela) or "R$ 0,00",
+                    }
+                )
+
+            valor_total = _parse_decimal(emprestimo.get(col_valor_final)) if col_valor_final else None
+            if valor_total is None and col_valor:
+                valor_total = _parse_decimal(emprestimo.get(col_valor))
+            if valor_total is None:
+                valor_total = saldo_devedor
+
+            id_emprestimo_original = str(emprestimo.get(col_id_emprest) or id_emprest_norm).strip()
+            ativos.append(
+                {
+                    "cpf": cpf,
+                    "id_participante": str(id_participante or "").strip(),
+                    "id_emprestimo": id_emprestimo_original,
+                    "valor_total_num": valor_total,
+                    "valor_total": _formatar_real(valor_total) or "R$ 0,00",
+                    "saldo_devedor_num": saldo_devedor,
+                    "saldo_devedor": _formatar_real(saldo_devedor) or "R$ 0,00",
+                    "parcelas_abertas": len(detalhes),
+                    "parcelas_detalhes": sorted(
+                        detalhes,
+                        key=lambda item: (
+                            pd.to_datetime(item.get("vencimento"), errors="coerce", dayfirst=True)
+                            if item.get("vencimento")
+                            else pd.Timestamp.max
+                        ),
+                    ),
+                }
+            )
+
+        ativos = sorted(ativos, key=lambda item: _normalizar_id(item.get("id_emprestimo")))
+        return ativos
+    except Exception:
+        return []
+    finally:
+        try:
+            if hasattr(xl, "close"):
+                xl.close()
+        except Exception:
+            pass
+
+
+def atualizar_emprestimos_ativos_csv(ativos=None):
+    if ativos is None:
+        ativos = _buscar_emprestimos_ativos()
+    os.makedirs(CSV_DIR, exist_ok=True)
+    linhas = []
+    for item in ativos:
+        for detalhe in item.get("parcelas_detalhes", []):
+            linhas.append(
+                {
+                    "cpf": item.get("cpf", ""),
+                    "id_participante": item.get("id_participante", ""),
+                    "id_emprestimo": item.get("id_emprestimo", ""),
+                    "valor_total_emprestimo": item.get("valor_total", ""),
+                    "saldo_devedor": item.get("saldo_devedor", ""),
+                    "parcela": detalhe.get("parcela", ""),
+                    "vencimento": detalhe.get("vencimento", ""),
+                    "valor_parcela": detalhe.get("valor", ""),
+                    "status_parcela": "em aberto",
+                }
+            )
+    try:
+        pd.DataFrame(linhas).to_csv(EMPRESTIMOS_ATIVOS_CSV, index=False, encoding="utf-8")
+    except Exception:
+        return None
+    return linhas
+
+
+def buscar_emprestimos_ativos_por_cpf(cpf):
+    cpf_norm = _normalizar_cpf(cpf)
+    if not cpf_norm:
+        return {"saldo_devedor_num": Decimal("0"), "saldo_devedor": "R$ 0,00", "emprestimos": []}
+
+    ativos = _buscar_emprestimos_ativos()
+    atualizar_emprestimos_ativos_csv(ativos=ativos)
+    emprestimos_usuario = [item for item in ativos if item.get("cpf") == cpf_norm]
+    saldo_total = sum((item.get("saldo_devedor_num", Decimal("0")) for item in emprestimos_usuario), Decimal("0"))
+    return {
+        "saldo_devedor_num": saldo_total,
+        "saldo_devedor": _formatar_real(saldo_total) or "R$ 0,00",
+        "emprestimos": emprestimos_usuario,
+    }
+
+
 def buscar_saldos_por_cpf(cpf):
     cpf_normalizado = _normalizar_cpf(cpf)
     if not cpf_normalizado:
@@ -356,6 +619,156 @@ def buscar_saldos_por_cpf(cpf):
         "variacao": _formatar_real(variacao) if variacao is not None else None,
         "variacao_num": float(variacao) if variacao is not None else 0,
     }
+
+
+def buscar_saldos_totais():
+    df = None
+    if os.path.exists(INFORMACOES_CSV):
+        try:
+            df = pd.read_csv(INFORMACOES_CSV, dtype=str, encoding="utf-8")
+        except Exception:
+            df = None
+
+    if df is None or df.empty:
+        df = atualizar_informacoes_csv()
+
+    if df is None or df.empty:
+        return None
+
+    coluna_atual = _encontrar_coluna(df.columns, ["atual", "saldo atual", "saldo_atual", "saldo"])
+    coluna_aplicado = _encontrar_coluna(df.columns, ["aplicado"])
+    if not coluna_atual or not coluna_aplicado:
+        return None
+
+    total_aplicado = Decimal("0")
+    total_atual = Decimal("0")
+
+    for valor in df[coluna_aplicado]:
+        numero = _parse_decimal(valor)
+        if numero is not None:
+            total_aplicado += numero
+
+    for valor in df[coluna_atual]:
+        numero = _parse_decimal(valor)
+        if numero is not None:
+            total_atual += numero
+
+    variacao = total_atual - total_aplicado
+
+    return {
+        "aplicado": _formatar_real(total_aplicado),
+        "atual": _formatar_real(total_atual),
+        "variacao": _formatar_real(variacao),
+        "variacao_num": float(variacao),
+    }
+
+
+def buscar_extrato_por_cpf(cpf):
+    cpf_normalizado = _normalizar_cpf(cpf)
+    if not cpf_normalizado:
+        return []
+
+    participantes = carregar_participantes_df()
+    if participantes is None or participantes.empty:
+        return []
+
+    coluna_cpf = _encontrar_coluna(participantes.columns, ["cpf"])
+    coluna_id = _encontrar_coluna(participantes.columns, ["id"])
+    if not coluna_cpf or not coluna_id:
+        return []
+
+    participantes["_cpf_norm"] = participantes[coluna_cpf].apply(_normalizar_cpf)
+    participantes["_id_norm"] = participantes[coluna_id].apply(_normalizar_id)
+    linha = participantes.loc[participantes["_cpf_norm"] == cpf_normalizado]
+    if linha.empty:
+        return []
+
+    id_participante = linha.iloc[0].get("_id_norm")
+    if not id_participante:
+        return []
+
+    extrato = _carregar_extrato_df()
+    if extrato is None or extrato.empty:
+        return []
+
+    coluna_id_extrato = _encontrar_coluna(extrato.columns, ["id"])
+    coluna_categoria = _encontrar_coluna(extrato.columns, ["categoria"])
+    coluna_tipo = _encontrar_coluna(extrato.columns, ["tipo"])
+    coluna_data = _encontrar_coluna(extrato.columns, ["data"])
+    coluna_valor = _encontrar_coluna(extrato.columns, ["valor"])
+    coluna_transacao = (
+        _encontrar_coluna(extrato.columns, ["transacao", "transação", "n transacao", "nº transacao", "numero da transacao", "numero transacao"])
+        or (extrato.columns[-1] if len(extrato.columns) else None)
+    )
+
+    if not coluna_id_extrato or not coluna_data or not coluna_valor or not coluna_transacao:
+        return []
+
+    extrato["_id_norm"] = extrato[coluna_id_extrato].apply(_normalizar_id)
+    filtrado = extrato.loc[extrato["_id_norm"] == id_participante].copy()
+    if filtrado.empty:
+        return []
+
+    saida = pd.DataFrame()
+    saida["data"] = filtrado[coluna_data].fillna("").astype(str).str.strip()
+    saida["categoria"] = filtrado[coluna_categoria].fillna("").astype(str).str.strip() if coluna_categoria else ""
+    saida["tipo"] = filtrado[coluna_tipo].fillna("").astype(str).str.strip() if coluna_tipo else ""
+    saida["transacao"] = filtrado[coluna_transacao].fillna("").astype(str).str.strip()
+    saida["valor_bruto"] = filtrado[coluna_valor].fillna("").astype(str).str.strip()
+
+    datas = pd.to_datetime(saida["data"], errors="coerce")
+    saida["_data_sort"] = datas
+    saida = saida.sort_values(by="_data_sort", ascending=False).drop(columns=["_data_sort"])
+
+    valores_fmt = []
+    classes = []
+    for _, row in saida.iterrows():
+        valor = row.get("valor_bruto")
+        tipo = _normalizar_texto(row.get("tipo"))
+        numero = _parse_decimal(valor)
+        if numero is None:
+            valores_fmt.append(str(valor or ""))
+            classes.append("valor-neutro")
+            continue
+
+        sinal = ""
+        classe = "valor-neutro"
+        if "entrada" in tipo:
+            sinal = "+"
+            classe = "valor-entrada"
+        elif "saida" in tipo or "saída" in tipo:
+            sinal = "-"
+            classe = "valor-saida"
+
+        valores_fmt.append(f"{sinal} {_formatar_real(numero)}".strip())
+        classes.append(classe)
+
+    saida["valor"] = valores_fmt
+    saida["valor_classe"] = classes
+    saida = saida.drop(columns=["valor_bruto"])
+
+    datas_fmt = []
+    for valor in saida["data"]:
+        dt = pd.to_datetime(valor, errors="coerce")
+        if pd.isna(dt):
+            datas_fmt.append(valor)
+        else:
+            datas_fmt.append(dt.strftime("%d/%m/%Y"))
+    saida["data"] = datas_fmt
+
+    os.makedirs(CSV_DIR, exist_ok=True)
+    saida.to_csv(EXTRATO_CSV, index=False, encoding="utf-8")
+
+    try:
+        df_csv = pd.read_csv(EXTRATO_CSV, dtype=str, encoding="utf-8")
+    except Exception:
+        return []
+
+    if df_csv is None or df_csv.empty:
+        return []
+
+    df_csv = df_csv.fillna("")
+    return df_csv.to_dict(orient="records")
 
 
 def buscar_evolucao_caixinha(limite=60):

@@ -10,6 +10,7 @@ const loanError = document.getElementById("loanError");
 const loanMaxDate = document.getElementById("loanMaxDate");
 const loanMonthlyRate = document.getElementById("loanMonthlyRate");
 const loanProceed = document.getElementById("loanProceed");
+const loanRequest = document.getElementById("loanRequest");
 const termsCheck = document.getElementById("termsCheck");
 const loanStatement = document.getElementById("loanStatement");
 const statementOverlay = document.getElementById("statementOverlay");
@@ -102,7 +103,9 @@ const config = (() => {
     const jurosMensal = parseNumber(loanPanel.dataset.juros);
     const maxParcelas = parseInt(loanPanel.dataset.maxParcelas || "24", 10);
     const maxData = parseISODate(loanPanel.dataset.maxData);
-    return { limit, jurosMensal, maxParcelas, maxData };
+    const canRequest = (loanPanel.dataset.canRequest || "1") === "1";
+    const blockMessage = (loanPanel.dataset.blockMessage || "").trim();
+    return { limit, jurosMensal, maxParcelas, maxData, canRequest, blockMessage };
 })();
 
 const updateSummary = () => {
@@ -226,10 +229,31 @@ if (loanProceed) {
             return;
         }
         fillStatement();
+        if (!config?.canRequest && loanError && config?.blockMessage) {
+            loanError.textContent = config.blockMessage;
+        }
         loanStatement?.classList.remove("is-hidden");
         statementOverlay?.classList.remove("is-hidden");
     });
 }
+
+if (loanRequest) {
+    if (!config?.canRequest) {
+        loanRequest.disabled = true;
+        loanRequest.title = config?.blockMessage || "Solicitacao bloqueada por saldo devedor.";
+    } else {
+        loanRequest.disabled = false;
+        loanRequest.title = "";
+    }
+}
+
+document.querySelectorAll("[data-loan-card]").forEach((card) => {
+    card.addEventListener("click", () => {
+        const details = card.querySelector("[data-loan-details]");
+        if (!details) return;
+        details.classList.toggle("is-hidden");
+    });
+});
 
 const closeStatement = () => {
     loanStatement?.classList.add("is-hidden");

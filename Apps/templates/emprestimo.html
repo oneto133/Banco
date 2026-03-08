@@ -31,15 +31,55 @@
                     <div class="loan-amount">
                         {{ saldo_disponivel if saldo_disponivel else "R$ 0,00" }}
                     </div>
-                    <p class="hint">Cálculo: saldo aplicado + {{ max_valor_perc_fmt }}%</p>
                 </article>
 
                 <article class="loan-info-card loan-info-card--muted">
                     <p class="subtitle">Saldo devedor</p>
-                    <div class="loan-amount">R$ 0,00</div>
-                    <p class="hint">Sem dados no momento</p>
+                    <div class="loan-amount">{{ saldo_devedor if saldo_devedor else "R$ 0,00" }}</div>
+                    <p class="hint">
+                        {{ (emprestimos_ativos|length) if emprestimos_ativos else 0 }} empréstimo(s) ativo(s)
+                    </p>
                 </article>
             </div>
+
+            {% if aviso_bloqueio %}
+            <p class="loan-warning loan-warning--strong">{{ aviso_bloqueio }}</p>
+            {% endif %}
+
+            <section class="active-loans">
+                <div class="active-loans-header">
+                    <h3>Empréstimos ativos</h3>
+                    <p>Clique no cartão para ver parcelas e vencimentos.</p>
+                </div>
+                {% if emprestimos_ativos %}
+                    <div class="active-loans-grid">
+                        {% for emp in emprestimos_ativos %}
+                        <article
+                            class="active-loan-card"
+                            data-loan-card
+                            data-loan-id="{{ emp.id_emprestimo }}"
+                        >
+                            <div class="active-loan-main">
+                                <p class="active-loan-id">ID {{ emp.id_emprestimo }}</p>
+                                <p class="active-loan-total">{{ emp.valor_total }}</p>
+                                <p class="active-loan-sub">Saldo devedor: {{ emp.saldo_devedor }}</p>
+                            </div>
+                            <div class="active-loan-details is-hidden" data-loan-details>
+                                {% for parc in emp.parcelas_detalhes %}
+                                <div class="active-loan-row">
+                                    <span>Parcela {{ parc.parcela if parc.parcela else "-" }}</span>
+                                    <span>{{ parc.vencimento if parc.vencimento else "--/--/----" }}</span>
+                                    <strong>{{ parc.valor if parc.valor else "R$ 0,00" }}</strong>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </article>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="hint">Nenhum empréstimo ativo para este participante.</p>
+                {% endif %}
+            </section>
 
             <button class="loan-action" id="loanToggle" type="button">Simular</button>
 
@@ -50,6 +90,8 @@
                 data-juros="{{ encargos.get('juros_mensal', '4.08') }}"
                 data-max-data="{{ encargos.get('max_data', '2026-11-10') }}"
                 data-max-parcelas="{{ encargos.get('max_parcelas', '24') }}"
+                data-can-request="{{ '0' if bloqueado_por_saldo else '1' }}"
+                data-block-message="{{ aviso_bloqueio if aviso_bloqueio else '' }}"
             >
                 <div class="loan-panel-header">
                     <h3>Simulação</h3>

@@ -52,10 +52,16 @@
                     </div>
                 </div>
             </div>
-            <a class="loan-card" href="/emprestimo" aria-label="Pegar emprestado">
-                <span class="loan-card-icon" aria-hidden="true">$</span>
-                <span class="loan-card-text">Pegar emprestado</span>
-            </a>
+            <div class="action-cards">
+                <a class="loan-card" href="/emprestimo" aria-label="Pegar emprestado">
+                    <span class="loan-card-icon" aria-hidden="true">$</span>
+                    <span class="loan-card-text">Pegar emprestado</span>
+                </a>
+                <a class="loan-card statement-card" href="/extrato" aria-label="Extrato">
+                    <span class="loan-card-icon statement-card-icon" aria-hidden="true">📄</span>
+                    <span class="loan-card-text">Extrato</span>
+                </a>
+            </div>
         </section>
         <section class="chart-card">
             <div class="chart-header">
@@ -139,6 +145,40 @@
                 <div class="chart-tooltip" id="chartTooltip" aria-hidden="true"></div>
             </div>
         </section>
+        <section class="overview-section">
+            <h3 class="overview-heading">Visão geral da caixinha</h3>
+            <div class="overview-card">
+                <div class="balance-grid">
+                    <div class="balance-item">
+                        <p class="balance-title">Total aplicado</p>
+                        <p class="balance-value">
+                            {{ saldos_totais.aplicado if saldos_totais and saldos_totais.aplicado else "R$ 0,00" }}
+                        </p>
+                    </div>
+                    <div class="balance-item">
+                        <p class="balance-title">Saldo atual</p>
+                        <p class="balance-value">
+                            {{ saldos_totais.atual if saldos_totais and saldos_totais.atual else "R$ 0,00" }}
+                        </p>
+                    </div>
+                    <div class="balance-item">
+                        <p class="balance-title">Variação</p>
+                        <p class="balance-value balance-variation">
+                            {% if saldos_totais and saldos_totais.variacao %}
+                                <span class="variation-value">{{ saldos_totais.variacao }}</span>
+                                {% if saldos_totais.variacao_num > 0 %}
+                                <span class="arrow arrow-up">&#9650;</span>
+                                {% elif saldos_totais.variacao_num < 0 %}
+                                <span class="arrow arrow-down">&#9660;</span>
+                                {% endif %}
+                            {% else %}
+                                R$ 0,00
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
     </main>
 
     <script id="evolucaoData" type="application/json">
@@ -155,7 +195,6 @@
         {% if usuario %}
         <p>CPF: {{ usuario }}</p>
         {% endif %}
-        <span class="help-label">Ajuda</span>
     </aside>
 
     <script src="static/js/dashboard.js"></script>

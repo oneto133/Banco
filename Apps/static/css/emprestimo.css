@@ -242,6 +242,88 @@ main {
     border-radius: 10px;
 }
 
+.loan-warning--strong {
+    margin-top: 14px;
+    border-color: #fdba74;
+    background: #fff2e2;
+    font-weight: 700;
+}
+
+.active-loans {
+    margin-top: 18px;
+}
+
+.active-loans-header h3 {
+    margin: 0;
+    color: #2b0038;
+    font-size: 18px;
+}
+
+.active-loans-header p {
+    margin: 6px 0 0 0;
+    color: #6b7280;
+    font-size: 12px;
+}
+
+.active-loans-grid {
+    margin-top: 12px;
+    display: grid;
+    gap: 10px;
+}
+
+.active-loan-card {
+    border: 1px solid #e9def7;
+    border-radius: 12px;
+    background: #ffffff;
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
+    padding: 14px;
+    cursor: pointer;
+}
+
+.active-loan-id {
+    margin: 0;
+    font-size: 12px;
+    color: #6b7280;
+}
+
+.active-loan-total {
+    margin: 4px 0 0 0;
+    font-size: 20px;
+    font-weight: 800;
+    color: #111827;
+}
+
+.active-loan-sub {
+    margin: 6px 0 0 0;
+    font-size: 12px;
+    color: #374151;
+}
+
+.active-loan-details {
+    margin-top: 10px;
+    border-top: 1px solid #efe7fb;
+    padding-top: 10px;
+    display: grid;
+    gap: 8px;
+}
+
+.active-loan-details.is-hidden {
+    display: none;
+}
+
+.active-loan-row {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr 1fr;
+    gap: 8px;
+    align-items: center;
+    font-size: 12px;
+    color: #374151;
+}
+
+.active-loan-row strong {
+    justify-self: end;
+}
+
 .loan-summary {
     margin-top: 18px;
     display: grid;
@@ -319,6 +401,12 @@ main {
     font-weight: 700;
     cursor: pointer;
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+.loan-request:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    box-shadow: none;
 }
 
 .loan-proceed:disabled {
@@ -513,6 +601,9 @@ main {
     text-shadow: 0 6px 14px rgba(15, 98, 254, 0.35);
 }
 
+
+
+
 .overlay {
     position: fixed;
     inset: 0;
@@ -527,6 +618,19 @@ main {
     opacity: 1;
     pointer-events: auto;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 @keyframes fadeIn {
     from {
@@ -552,4 +656,6 @@ main {
     .loan-action {
         width: 100%;
     }
-}
+
+    
+    }

@@ -1,3 +1,4 @@
 ID,Nome,CPF,Endereço,E-mail,Telefone,Vencimento,Mensal,Aplicado,Projetado,Atual
-1,Armando rodrigues progenio neto,06361784207,1,rodriguesarmando225@gmail.com,91988468119,6,50,50,95.68586443644693,95.68586443644693
-2,Waldriano progenio monteiro,07355444255,2,walzinhoprogenio@gmail.com,91985921827,6,50,50,95.68586443644693,95.68586443644693
+1,Armando rodrigues progenio neto,06361784207,1,rodriguesarmando225@gmail.com,91988468119,6,50,150,2.639796094844371,2.0531747404345277
+2,Waldriano progenio monteiro,07355444255,2,walzinhoprogenio@gmail.com,91985921827,6,50,100,1.7598640632295854,2.0531747404345277
+3,Adriana dos reis mota progenio,92640591215,2,,91988468119,6,100,100,1.7598640632295854,2.0531747404345277

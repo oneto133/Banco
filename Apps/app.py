@@ -622,9 +622,17 @@ def dashboard():
     nome = buscar_nome_por_cpf_informacoes(usuario) or buscar_nome_por_cpf(usuario)
     dados.atualizar_informacoes_csv()
     saldos = dados.buscar_saldos_por_cpf(usuario)
+    saldos_totais = dados.buscar_saldos_totais()
     evolucao = dados.buscar_evolucao_caixinha(limite=None)
     dados.gerar_relatorio_csv()
-    return render_template("dashboard.html", nome=nome, usuario=usuario, saldos=saldos, evolucao=evolucao)
+    return render_template(
+        "dashboard.html",
+        nome=nome,
+        usuario=usuario,
+        saldos=saldos,
+        saldos_totais=saldos_totais,
+        evolucao=evolucao,
+    )
 
 
 @app.route("/emprestimo")
@@ -640,14 +648,32 @@ def emprestimo():
     if saldo_aplicado is None:
         saldo_aplicado = Decimal("0")
 
+    emprestimos_info = dados.buscar_emprestimos_ativos_por_cpf(usuario)
+    saldo_devedor = emprestimos_info.get("saldo_devedor_num", Decimal("0")) if emprestimos_info else Decimal("0")
+    if saldo_devedor is None:
+        saldo_devedor = Decimal("0")
+
     encargos = carregar_encargos()
     max_perc_txt = encargos.get("max_valor_perc", "20")
     try:
         max_perc_dec = Decimal(str(max_perc_txt))
     except Exception:
         max_perc_dec = Decimal("20")
-    saldo_disponivel = saldo_aplicado * (Decimal("1") + (max_perc_dec / Decimal("100")))
+    saldo_base = saldo_aplicado * (Decimal("1") + (max_perc_dec / Decimal("100")))
+    saldo_disponivel = saldo_base - saldo_devedor
+    if saldo_disponivel < Decimal("0"):
+        saldo_disponivel = Decimal("0")
+
+    bloqueado_por_saldo = saldo_devedor > saldo_base
+    aviso_bloqueio = None
+    if bloqueado_por_saldo:
+        aviso_bloqueio = (
+            "Seu saldo devedor esta maior que o saldo disponivel para emprestimo. "
+            "A simulacao esta liberada, mas novas contratacoes estao temporariamente bloqueadas."
+        )
+
     saldo_disponivel_fmt = dados._formatar_real(saldo_disponivel)
+    saldo_devedor_fmt = dados._formatar_real(saldo_devedor) or "R$ 0,00"
     juros_txt = encargos.get("juros_mensal", "4.08")
     try:
         juros_dec = Decimal(str(juros_txt))
@@ -670,12 +696,28 @@ def emprestimo():
         usuario=usuario,
         saldo_disponivel=saldo_disponivel_fmt,
         saldo_disponivel_num=str(saldo_disponivel),
+        saldo_devedor=saldo_devedor_fmt,
+        emprestimos_ativos=emprestimos_info.get("emprestimos", []) if emprestimos_info else [],
+        bloqueado_por_saldo=bloqueado_por_saldo,
+        aviso_bloqueio=aviso_bloqueio,
         encargos=encargos,
         juros_mensal_fmt=juros_fmt,
         max_data_br=max_data_br,
         max_valor_perc_fmt=max_perc_fmt
     )
 
+
+@app.route("/extrato")
+def extrato():
+    usuario = session.get("usuario")
+    nome = buscar_nome_por_cpf_informacoes(usuario) or buscar_nome_por_cpf(usuario)
+    transacoes = dados.buscar_extrato_por_cpf(usuario)
+    return render_template(
+        "extrato.html",
+        nome=nome,
+        usuario=usuario,
+        transacoes=transacoes
+    )
 
 @app.route("/relatorio/atualizar")
 def atualizar_relatorio():

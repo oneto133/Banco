@@ -1,0 +1,5 @@
+data,categoria,tipo,transacao,valor,valor_classe
+06/03/2026,Empréstimo,Saída,m632E,"- R$ 200,00",valor-saida
+27/02/2026,Empréstimo,Saída,f651E,"- R$ 250,00",valor-saida
+26/02/2026,Aplicação,Entrada,f631A,"+ R$ 50,00",valor-entrada
+08/02/2026,Aplicação,Entrada,f621A,"+ R$ 50,00",valor-entrada
